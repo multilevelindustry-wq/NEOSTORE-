@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NEOSTORE — Product / Cart / Auth Demo</title>
+
+<!-- PayPal JS SDK (LIVE client-id) -->
+<script src="https://www.paypal.com/sdk/js?client-id=Aey_vJzSIErk6JUHmkIU41JQ4W1vA2FlfBNf5Vtkg7j4YLaWHkFtw4WSPI0SWiCzhaNKqPt2oGuVIF1n&components=buttons&currency=USD"></script>
+
+<style>
+  /* ====== Basic Styling ====== */
+  :root {--accent:#0ea5a4; --muted:#6b7280; --bg:#f8fafc;}
+  *{box-sizing:border-box;}
+  body{font-family:Inter,system-ui,Arial,sans-serif; margin:0; background:var(--bg); color:#111;}
+  header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:white;box-shadow:0 2px 8px rgba(2,6,23,0.06);}
+  .logo{font-weight:700; letter-spacing:1px;}
+  nav a{margin-right:12px;color:var(--muted);text-decoration:none;}
+  .icon{cursor:pointer; margin-left:12px;}
+  main{max-width:1000px;margin:28px auto;padding:0 16px;}
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:20px;}
+  .card{background:white;padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.06);}
+  .product img{width:100%;height:360px;object-fit:cover;border-radius:8px;}
+  .product h1{margin:12px 0 6px;}
+  .price{font-size:20px;color:var(--accent);font-weight:600;}
+  button.btn{background:var(--accent);color:white;padding:10px 14px;border-radius:8px;border:0;cursor:pointer;}
+  button.ghost{background:transparent;border:1px solid #e6e6e6;color:var(--muted);}
+  .product-desc{margin-top:12px;color:var(--muted);}
+  .cart-list{max-height:420px;overflow:auto;margin-top:12px;}
+  .cart-item{display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid #f3f4f6;}
+  .cart-item img{width:64px;height:64px;object-fit:cover;border-radius:6px;}
+  .qty{width:56px;}
+  .hidden{display:non;}
+  .center{display:flex;align-items:center;justify-content:center;}
+  
+  @media (max-width:880px){.grid{grid-template-columns:1fr}.product img{height:260px}}
+  
+  /* Modal & auth inputs */
+  .modal{position:fixed;inset:0;background:rgba(2,6,23,0.4);display:flex;align-items:center;justify-content:center;}
+  .modal .panel{width:360px;background:white;padding:18px;border-radius:10px;}
+  input[type=text],input[type=password],input[type=email]{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #e5e7eb;}
+  a.link{color:var(--accent);cursor:pointer;}
+  footer{padding:20px;text-align:center;color:var(--muted);}
+
+  /* Header enhancements */
+  .left-section{display:flex;align-items:center;gap:15px;}
+  .logo{font-size:1.5rem;font-weight:bold;}
+  nav{display:flex;gap:25px;}
+  nav a{color:#111;text-decoration:none;font-size:1rem;transition:0.3s;}
+  nav a:hover{color:#f97316;}
+  
+  /* Hamburger Menu */
+  .menu-btn{display:none;font-size:1.5rem;cursor:pointer;color:#111;background:none;border:none;}
+  @media(max-width:768px){
+    .menu-btn{display:block;}
+    nav{
+      position:fixed;top:0;left:-100%;width:50%;height:50vh;background:white;
+      flex-direction:column;align-items:center;justify-content:center;transition:0.4s;
+    }
+    nav.active{left:0;}
+    .close-btn{position:absolute;top:20px;left:20px;font-size:2rem;color:#111;cursor:pointer;background:none;border:none;}
+    .close-btn.hidden{display:none;}
+  }
+  
+  .btn{background:transparent;border:5px solid #e6e6e6;color:var(--muted);border-radius:15px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="left-section">
+    <div class="menu-btn" id="menu-btn">&#9776;</div>
+    <div class="logo">NEOSTORE</div>
+  </div>
+  <nav id="nav">
+    <button class="close-btn hidden" id="close-btn">&times;</button>
+    <a href="#product">Home</a>
+    <a href="#product">Shop</a>
+    <a href="#about">About</a>
+    <a href="#about">Contact</a>
+  </nav>
+  <div style="display:flex;align-items:center">
+    <div id="user-area" class="icon" title="Sign Up / Login"><i class="fa-solid fa-user"></i> <span id="user-text-mini" style="margin-left:8px"></span></div>
+    <div style="width:12px"></div>
+    <div id="cart-btn" class="icon" title="Cart"><i class="fa-solid fa-cart-shopping"></i> <span id="cart-count" style="font-weight:600;margin-left:6px"></span></div>
+  </div>
+</header>
+
+<style>
+          #page-product{
+              display: none;
+          }
+      </style>
+      <style>
+          #page-cart{
+              display: none;
+          }
+      </style>
+
+  <!-- SPA pages placeholders -->
+  <section id="page-product" class="page">
+    <div class="grid">
+      
+        <div class="card product">
+          <img id="product-image" src="1000086128-min.png.jpg" alt="product image">
+          <h1 id="product-title">Vitamin</h1>
+          <div class="price" id="product-price">$24.99</div>
+          <p class="product-desc">High quality product. Use the Add to cart button to store this item in your cart. Cart persists across pages and sessions.</p>
+          <div style="margin-top:12px;display:flex;gap:10px">
+            <button id="add-to-cart" class="btn">Add to cart</button>
+            <button id="buy-now" class="btn ghost">Buy Now</button>
+          </div>
+        </div>
+        <div style="margin-top:14px" class="card">
+          <h3>Product details</h3>
+          <ul style="color:var(--muted)">
+            <li>Weight: 200g</li>
+            <li>Made with care</li>
+            <li>30-day returns</li>
+          </ul>
+        </div>
+      </div>
+      <aside>
+        <div class="card">
+          <h3>Your Cart</h3>
+          <div class="cart-list" id="cart-list"></div>
+          
+          <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="color:var(--muted)">Subtotal</div>
+              <div style="font-weight:700;font-size:18px" id="cart-subtotal">$0.00</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button id="goto-cart" class="btn">Go to cart page</button>
+              <button id="checkout-now" class="btn ghost">Checkout (PayPal)</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+  <!-- Cart Page -->
+  <section id="page-cart" class="page hidden">
+    <div class="card">
+      <h2>Your Cart</h2>
+      <div id="cart-full-list" class="cart-list"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+        <div>
+          <div style="color:var(--muted)">Total</div>
+          <div style="font-weight:700;font-size:20px" id="cart-total">$0.00</div>
+        </div>
+        <div>
+          <div id="paypal-container"></div>
+          <div style="margin-top:8px"><button id="continue-shopping" class="btn ghost">Continue shopping</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Login / Signup Page -->
+  <section id="page-login" class="page hidden">
+    <div class="card" style="max-width:480px;margin:auto">
+      <h2 id="auth-title">Sign Up</h2>
+      <form id="auth-form">
+        <input id="auth-name" type="text" placeholder="Full name (for sign up)">
+        <input id="auth-email" type="email" placeholder="Email" required>
+        <input id="auth-password" type="password" placeholder="Password" required>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button type="submit" class="btn">Submit</button>
+          <button type="button" id="auth-toggle" class="btn ghost">Switch to Login</button>
+         
+              To log out click your name at the top 🔝 
+        </div>
+        <div style="margin-top:8px;color:var(--muted)"></div>
+      </form>
+    </div>
+  </section>
+  
+  
+  
+  <style>
+          #page-dashboard{
+              display: none;
+          }
+      </style>
+  <!-- Dashboard Page -->
+  <section id="page-dashboard" class="page hidden">
+    <div class="card" style="max-width:700px;margin:auto">
+      <h2>Dashboard</h2>
+      <div id="dashboard-welcome">Welcome</div>
+      <div style="margin-top:12px"><button id="logout-btn" class="btn ghost">Logout</button></div>
+    </div>
+  </section>
+
+<div id="modal-root" class="hidden"></div>
+
+<footer>
+  NEOSTORE 
+</footer>
+
+<script>
+/////////////////////////
+// Constants
+const CART_KEY = 'neo_cart_v1';
+const AUTH_KEY = 'neo_users_v1';
+const SESSION_KEY = 'neo_session_v1';
+const INACTIVE_MS = 10 * 60 * 1000; // 10 min
+const INACT_KEY = 'neo_last_activity_v1';
+const DELIVERY_COUNTRY_KEY = "neo_delivery_country_v1";
+
+// Pages
+const pages = {
+  product: document.getElementById('page-product'),
+  cart: document.getElementById('page-cart'),
+  login: document.getElementById('page-login'),
+  dashboard: document.getElementById('page-dashboard')
+};
+
+// Show SPA page
+function showPage(name){
+  Object.values(pages).forEach(p=>p.classList.add('hidden'));
+  pages[name].classList.remove('hidden');
+  location.hash = '#'+name;
+  if(name==='cart') renderCartFull();
+  if(name==='dashboard') renderDashboard();
+}
+
+// Init page
+window.addEventListener('hashchange', ()=> showPage(location.hash.replace('#','') || 'product'));
+if(!location.hash) location.hash = '#product';
+showPage(location.hash.replace('#',''));
+
+// Product data
+const product = {
+  id: 'p1',
+  title: document.getElementById('product-title').textContent,
+  price: 24.99,
+  image: document.getElementById('product-image').src
+};
+document.getElementById('product-price').textContent = '$'+product.price.toFixed(2);
+
+/////////////////////////
+// Cart functions
+function getCart(){ return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }
+function saveCart(cart){ localStorage.setItem(CART_KEY, JSON.stringify(cart)); renderMiniCart(); updateDeliveryTotalDisplay(); }
+function addToCart(item){
+  const cart = getCart();
+  const found = cart.find(i=>i.id===item.id);
+  if(found) found.qty += 1; else cart.push({...item, qty:1});
+  saveCart(cart);
+}
+function removeFromCart(id){ let cart=getCart(); cart = cart.filter(i=>i.id!==id); saveCart(cart);}
+function updateQty(id, qty){ const cart = getCart(); const it = cart.find(i=>i.id===id); if(!it) return; it.qty = qty; if(it.qty<=0) removeFromCart(id); else saveCart(cart);}
+function cartSubtotal(){ return getCart().reduce((s,i)=>s+i.price*i.qty,0); }
+
+// Mini cart render
+const cartList = document.getElementById('cart-list');
+const cartCount = document.getElementById('cart-count');
+function renderMiniCart(){
+  const cart = getCart();
+  cartCount.textContent = cart.reduce((s,i)=>s+i.qty,0) || '';
+  cartList.innerHTML = '';
+  if(cart.length===0){ cartList.innerHTML = '<div style="color:var(--muted)">Cart is empty</div>'; document.getElementById('cart-subtotal').textContent = '$0.00'; return; }
+  cart.forEach(i=>{
+    const el = document.createElement('div'); el.className='cart-item';
+    el.innerHTML = `<img src="${i.image}"><div style='flex:1'><div style="font-weight:600">${i.title}</div><div style="color:var(--muted)">$${i.price.toFixed(2)}</div></div><div style='text-align:right'><div class='qty'>x ${i.qty}</div></div>`;
+    cartList.appendChild(el);
+  });
+  document.getElementById('cart-subtotal').textContent = '$'+cartSubtotal().toFixed(2);
+}
+renderMiniCart();
+
+// Full cart render
+function renderCartFull(){
+  const el = document.getElementById('cart-full-list'); el.innerHTML='';
+  const cart = getCart();
+  if(cart.length===0){ el.innerHTML='<div style="color:var(--muted)">Your cart is empty</div>'; document.getElementById('cart-total').textContent='$0.00'; return; }
+  cart.forEach(i=>{
+    const row = document.createElement('div'); row.className='cart-item';
+    row.innerHTML = `<img src='${i.image}'><div style='flex:1'><div style='font-weight:700'>${i.title}</div><div style='color:var(--muted)'>$${i.price.toFixed(2)}</div></div>
+      <div style='display:flex;flex-direction:column;align-items:flex-end'>
+        <input type='number' min='0' value='${i.qty}' data-id='${i.id}' class='qty-input' style='width:64px;padding:6px;border-radius:6px;border:1px solid #e5e7eb'>
+        <button data-id='${i.id}' class='btn remove-item' style='margin-top:8px'>Remove</button>
+      </div>`;
+    el.appendChild(row);
+  });
+  // hooks
+  document.querySelectorAll('.remove-item').forEach(b=>b.addEventListener('click',e=>{ removeFromCart(e.target.dataset.id); renderCartFull(); }));
+  document.querySelectorAll('.qty-input').forEach(inp=>inp.addEventListener('change',e=>{ const id=e.target.dataset.id; const v=parseInt(e.target.value)||0; updateQty(id,v); renderCartFull(); }));
+  updateDeliveryTotalDisplay();
+  renderPayPalButton();
+}
+
+/////////////////////////
+// Buttons
+document.getElementById('add-to-cart').addEventListener('click',()=>{ addToCart(product); alert('Added to cart'); });
+document.getElementById('goto-cart').addEventListener('click',()=> showPage('cart'));
+document.getElementById('continue-shopping').addEventListener('click',()=> showPage('product'));
+document.getElementById('buy-now').addEventListener('click',()=>{ addToCart(product); showPage('cart'); });
+
+/////////////////////////
+// Auth functions
+function getUsers(){ return JSON.parse(localStorage.getItem(AUTH_KEY)||'{}'); }
+function saveUsers(u){ localStorage.setItem(AUTH_KEY, JSON.stringify(u)); }
+function signup(name,email,password){ const users = getUsers(); if(users[email]) throw new Error('User exists'); users[email] = {name,email,password}; saveUsers(users); login(email,password);}
+function login(email,password){ const users = getUsers(); if(!users[email] || users[email].password !== password) throw new Error('Invalid credentials'); localStorage.setItem(SESSION_KEY, JSON.stringify({email,name:users[email].name,loggedAt:Date.now()})); renderUserUI(); }
+function logout(){ localStorage.removeItem(SESSION_KEY); renderUserUI(); showPage('product'); }
+function currentUser(){ return JSON.parse(localStorage.getItem(SESSION_KEY)||'null'); }
+
+// Auth form
+const authForm = document.getElementById('auth-form');
+const authToggle = document.getElementById('auth-toggle');
+let authMode = 'signup';
+authToggle.addEventListener('click', ()=>{
+  authMode = authMode === 'signup' ? 'login' : 'signup';
+  document.getElementById('auth-title').textContent = authMode==='signup' ? 'Sign Up' : 'Login';
+  document.getElementById('auth-name').style.display = authMode==='signup' ? 'block' : 'none';
+  authToggle.textContent = authMode==='signup' ? 'Switch to Login' : ' Sign Up';
+});
+
+// Modify only one thing: after login redirect to new dashboard page
+authForm.addEventListener('submit', e => {
+e.preventDefault();
+const name = document.getElementById('auth-name').value.trim();
+const email = document.getElementById('auth-email').value.trim();
+const pw = document.getElementById('auth-password').value;
+try{
+if(authMode==='signup') signup(name,email,pw); else login(email,pw);
+alert('Logged in');
+window.location.href = 'dashboard.html'; // ✅ new redirect
+}catch(err){ alert(err.message); }
+});
+
+
+// User icon click: go to dashboard.html
+document.getElementById('user-area').addEventListener('click',()=>{
+if(currentUser()) window.location.href = 'dashboard.html';
+else showPage('login');
+});
+
+// User area
+document.getElementById('user-area').addEventListener('click', ()=>{ if(currentUser()) showPage('product'); else showPage('login'); });
+function renderUserUI(){ const u=currentUser(); document.getElementById('user-text-mini').textContent = u ? u.name : 'Sign in'; }
+renderUserUI();
+document.getElementById('logout-btn').addEventListener('click', ()=>{ logout(); });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////
+// Auto-logout
+function touchActivity(){ localStorage.setItem(INACT_KEY, Date.now()); }
+['click','keydown','mousemove','touchstart'].forEach(evt=> window.addEventListener(evt, touchActivity));
+function checkInactivity(){
+  const last = parseInt(localStorage.getItem(INACT_KEY)||'0'); if(!last){ touchActivity(); return; }
+  if(Date.now() - last > INACTIVE_MS){ if(currentUser()){ alert('You have been logged out due to inactivity'); logout(); } }
+}
+setInterval(checkInactivity,10000);
+if(!localStorage.getItem(INACT_KEY)) touchActivity();
+
+
+//////////////////////////
+function renderPayPalButton(){
+  const container = document.getElementById('paypal-container');
+  container.innerHTML='';
+  
+  const subtotal = cartSubtotal();
+  const country = localStorage.getItem("neo_delivery_country_v1") || "Other";
+  const deliveryFee = calculateDeliveryFee(country);
+  const total = subtotal + deliveryFee;   // ✅ include delivery fee
+  
+  if(total <= 0) return;
+
+  const user = currentUser();
+  if(!user){
+    const b = document.createElement('button');
+    b.className = 'btn';
+    b.textContent = 'Login to checkout';
+    b.addEventListener('click', ()=> showPage('login'));
+    container.appendChild(b);
+    return;
+  }
+
+  paypal.Buttons({
+    createOrder: (data, actions) => actions.order.create({
+      purchase_units: [{
+        amount: {
+          value: total.toFixed(2),   // ✅ send subtotal + delivery fee to PayPal
+          breakdown: {
+            item_total: { value: subtotal.toFixed(2), currency_code: "USD" },
+            shipping:   { value: deliveryFee.toFixed(2), currency_code: "USD" }
+          }
+        },
+        description: "NEOSTORE Order (includes delivery)"
+      }]
+    }),
+    onApprove: (data, actions) => actions.order.capture().then(details => {
+      alert('Payment completed by ' + (details.payer.name.given_name || 'Customer') + '. Order ID: ' + data.orderID);
+      localStorage.removeItem(CART_KEY);
+      renderMiniCart();
+      showPage('product');
+    }),
+    onError: err => {
+      console.error(err);
+      alert('Payment failed: ' + err);
+    }
+  }).render('#paypal-container');
+}
+
+
+
+
+/////////////////////////
+// Dashboard
+function renderDashboard(){ const u=currentUser(); document.getElementById('dashboard-welcome').textContent = u ? `Hello, ${u.name} (${u.email})` : 'Not logged in'; }
+
+/////////////////////////
+// Cart icon click
+document.getElementById('cart-btn').addEventListener('click', ()=> showPage('cart'));
+
+/////////////////////////
+// Hamburger menu
+const menuBtn = document.getElementById('menu-btn');
+const closeBtn = document.getElementById('close-btn');
+const nav = document.getElementById('nav');
+menuBtn.addEventListener('click',()=>{ nav.classList.add('active'); closeBtn.classList.remove('hidden'); });
+closeBtn.addEventListener('click',()=>{ nav.classList.remove('active'); closeBtn.classList.add('hidden'); });
+document.querySelectorAll('nav a').forEach(link=> link.addEventListener('click',()=>{ nav.classList.remove('active'); closeBtn.classList.add('hidden'); }));
+
+/////////////////////////
+// Delivery Fee
+function calculateDeliveryFee(country){
+  const cart = getCart();
+  const itemCount = cart.reduce((s,i)=>s+i.qty,0); if(itemCount===0) return 0;
+  const c = (country||'').trim().toLowerCase();
+  let feePer2 = 25;
+  if(['ghana','nigeria','kenya','south africa','cameroon','tanzania','uganda','zambia','ethiopia','africa'].some(x=>c.includes(x))) feePer2=25;
+  else if(['france','germany','italy','spain','uk','england','europe','sweden','netherlands'].some(x=>c.includes(x))) feePer2=18;
+  else if(['china','japan','india','thailand','philippines','asia','indonesia','malaysia','vietnam','pakistan'].some(x=>c.includes(x))) feePer2=20;
+  else if(['usa','united states','canada','mexico','america','brazil','argentina'].some(x=>c.includes(x))) feePer2=10;
+  else if(['turkey','greece','cyprus','mediterranean','israel','lebanon','morocco','tunisia','egypt'].some(x=>c.includes(x))) feePer2=22;
+  return feePer2 * Math.ceil(itemCount/2);
+}
+
+function getOrAskCountry(){
+  let country = localStorage.getItem(DELIVERY_COUNTRY_KEY);
+  if(!country){ country = prompt("Enter your country for delivery fee calculation:")||"Other"; localStorage.setItem(DELIVERY_COUNTRY_KEY,country); }
+  return country;
+}
+
+function updateDeliveryTotalDisplay(){
+  const subtotal = cartSubtotal();
+  const country = getOrAskCountry();
+  const deliveryFee = calculateDeliveryFee(country);
+  const total = subtotal + deliveryFee;
+  const totalDiv = document.getElementById('cart-total');
+  if(totalDiv){
+    totalDiv.innerHTML = `$${total.toFixed(2)}<div style="font-size:0.9rem;color:var(--muted)">(Subtotal: $${subtotal.toFixed(2)} + Delivery: $${deliveryFee.toFixed(2)})</div>`;
+  }
+}
+
+// Hook cart updates for delivery
+(function hookCartDeliveryUpdates(){
+  const oldSaveCart = saveCart;
+  saveCart = function(cart){ oldSaveCart(cart); if(location.hash==='#cart') updateDeliveryTotalDisplay(); };
+  const oldRenderCartFull = renderCartFull;
+  renderCartFull = function(){ oldRenderCartFull(); if(location.hash==='#cart') updateDeliveryTotalDisplay(); };
+})();
+
+// Update delivery display when cart page opens
+const originalShowPage = showPage;
+showPage = function(name){ originalShowPage(name); if(name==='cart') setTimeout(updateDeliveryTotalDisplay,300); };
+
+</script>
+
+<script src="supabase-backend.js"></script>
+
+<!-- Font Awesome -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</body>
+</html>
