@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NEOSTORE — Dashboard</title>
+
+  <style>
+    body{
+      font-family:Inter,system-ui,Arial,sans-serif;
+      background:#f8fafc;
+      margin:0;
+      padding:20px;
+    }
+    .card{
+      background:white;
+      padding:20px;
+      max-width:700px;
+      margin:auto;
+      border-radius:12px;
+      box-shadow:0 6px 18px rgba(2,6,23,0.06);
+    }
+    button{
+      padding:10px 14px;
+      border-radius:8px;
+      border:0;
+      cursor:pointer;
+    }
+    .ghost{background:transparent;border:1px solid #e5e7eb;color:#6b7280;}
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Dashboard</h2>
+  <div id="dashboard-welcome">Loading...</div>
+  <div style="margin-top:12px">
+    <button id="logout-btn" class="ghost">Logout</button>
+    
+    
+    <a href="index.html">
+          <button class="btn ghost">GO SHOP NOW</button>
+  </div>
+</div>
+
+<script>
+// Same keys as main file
+const SESSION_KEY = 'neo_session_v1';
+
+function currentUser(){ return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
+function logout(){ localStorage.removeItem(SESSION_KEY); window.location.href = 'index.html'; }
+
+// Protect dashboard page
+const user = currentUser();
+if(!user){ window.location.href = 'index.html#login'; }
+else{
+  document.getElementById('dashboard-welcome').textContent = `Hello, ${user.name} (${user.email})`;
+}
+
+document.getElementById('logout-btn').addEventListener('click', logout);
+</script>
+  
+<script src="supabase-backend.js"></script>
+  
+</body>
+</html>
