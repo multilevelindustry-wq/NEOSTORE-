@@ -9,8 +9,8 @@
    <script src="supabase-backend.js"></script>
 */
 
-const SUPABASE_URL = 'https://REPLACE_WITH_YOUR_SUPABASE_REF.supabase.co';
-const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://bjgfqzudzykgiievdbbp.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqZ2ZxenVkenlrZ2lpZXZkYmJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4NjM4NDAsImV4cCI6MjA3OTQzOTg0MH0.ch0AbvLN9daDeD7NONuEFJvMjsfOaFnOA4BioF-Hm-0';
 const EDGE_FUNC_PAYPAL_URL = null; // e.g. 'https://<project>.functions.supabase.co/create-paypal-order' OR full URL
 
 (async function () {
