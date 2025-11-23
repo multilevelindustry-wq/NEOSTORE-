@@ -1,0 +1,1789 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NEOSTORE — Product / Cart / Auth Demo</title>
+
+<!-- PayPal JS SDK (LIVE client-id) -->
+<script src="https://www.paypal.com/sdk/js?client-id=Aey_vJzSIErk6JUHmkIU41JQ4W1vA2FlfBNf5Vtkg7j4YLaWHkFtw4WSPI0SWiCzhaNKqPt2oGuVIF1n&components=buttons&currency=USD"></script>
+
+<style>
+  /* ====== Basic Styling ====== */
+  :root {--accent:#0ea5a4; --muted:#6b7280; --bg:#f8fafc;}
+  *{box-sizing:border-box;}
+  body{font-family:Inter,system-ui,Arial,sans-serif; margin:0; background:var(--bg); color:#111;}
+  header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:white;box-shadow:0 2px 8px rgba(2,6,23,0.06);}
+  .logo{font-weight:700; letter-spacing:1px;}
+  nav a{margin-right:12px;color:var(--muted);text-decoration:none;}
+  .icon{cursor:pointer; margin-left:12px;}
+  main{max-width:1000px;margin:28px auto;padding:0 16px;}
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:20px;}
+  .card{background:white;padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.06);}
+  .product img{width:100%;height:360px;object-fit:cover;border-radius:8px;}
+  .product h1{margin:12px 0 6px;}
+  .price{font-size:20px;color:var(--accent);font-weight:600;}
+  button.btn{background:var(--accent);color:white;padding:10px 14px;border-radius:8px;border:0;cursor:pointer;}
+  button.ghost{background:transparent;border:1px solid #e6e6e6;color:var(--muted);}
+  .product-desc{margin-top:12px;color:var(--muted);}
+  .cart-list{max-height:420px;overflow:auto;margin-top:12px;}
+  .cart-item{display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid #f3f4f6;}
+  .cart-item img{width:64px;height:64px;object-fit:cover;border-radius:6px;}
+  .qty{width:56px;}
+  .hidden{display:none;}
+  .center{display:flex;align-items:center;justify-content:center;}
+  
+  @media (max-width:880px){.grid{grid-template-columns:1fr}.product img{height:260px}}
+  
+  /* Modal & auth inputs */
+  .modal{position:fixed;inset:0;background:rgba(2,6,23,0.4);display:flex;align-items:center;justify-content:center;}
+  .modal .panel{width:360px;background:white;padding:18px;border-radius:10px;}
+  input[type=text],input[type=password],input[type=email]{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #e5e7eb;}
+  a.link{color:var(--accent);cursor:pointer;}
+  footer{padding:20px;text-align:center;color:var(--muted);}
+
+  /* Header enhancements */
+  .left-section{display:flex;align-items:center;gap:15px;}
+  .logo{font-size:1.5rem;font-weight:bold;}
+  nav{display:flex;gap:25px;}
+  nav a{color:#111;text-decoration:none;font-size:1rem;transition:0.3s;}
+  nav a:hover{color:#f97316;}
+  
+  /* Hamburger Menu */
+  .menu-btn{display:none;font-size:1.5rem;cursor:pointer;color:#111;background:none;border:none;}
+  @media(max-width:768px){
+    .menu-btn{display:block;}
+    nav{
+      position:fixed;top:0;left:-100%;width:50%;height:5vh;background:white;
+      flex-direction:column;align-items:center;justify-content:center;transition:0.4s;
+    }
+    nav.active{left:0;}
+    .close-btn{position:absolute;top:20px;left:20px;font-size:2rem;color:#111;cursor:pointer;background:none;border:none;}
+    .close-btn.hidden{display:none;}
+  }
+  
+  
+  
+  
+  
+  
+  /* --- Header --- */
+header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:19px 18px;
+  background: #fff;
+  box-shadow: 0 2px 0px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+    
+      .left-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  nav a {
+    color: #111;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: 0.3s;
+    padding: 10px;
+  }
+
+  nav a:hover {
+    color: #f97316;
+  }
+
+  /* Hamburger icon */
+  .menu-btn {
+    display: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #111;
+    background: none;
+    border: none;
+  }
+
+  /* Mobile view */
+  @media (max-width: 1024px) {
+    .menu-btn {
+      display: block;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: white;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: 0.4s;
+    }
+
+    nav.active {
+      left: 0;
+    }
+
+    /* Close (X) button inside opened menu */
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 2rem;
+      color: #111;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    /* Hide close button by default */
+    .close-btn.hidden {
+      display: none;
+    }
+  }
+
+
+.sign-up img{
+    font-size: 0.2rem;
+    font-weight: bold;
+}
+
+
+
+/* 🎬 Movie-style responsive slider */
+.slider {
+  position: relative;
+  width: 100%;
+  height: 60vh; /* Responsive height */
+  max-height: 60px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+}
+
+/* Common image styling */
+.slider img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  animation-duration: 24s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+/* Each image animation direction */
+.from-left { animation-name: slideFromLeft; }
+.from-right { animation-name: slideFromRight; }
+.from-top { animation-name: slideFromTop; }
+.from-bottom { animation-name: slideFromBottom; }
+
+/* Animations for different entry directions */
+@keyframes slideFromLeft {
+  0% { transform: translateX(-100%); opacity: 0; }
+  5%, 25% { transform: translateX(0); opacity: 1; }
+  30%, 100% { opacity: 0; }
+}
+
+@keyframes slideFromRight {
+  25% { transform: translateX(100%); opacity: 0; }
+  30%, 50% { transform: translateX(0); opacity: 1; }
+  55%, 100% { opacity: 0; }
+}
+
+@keyframes slideFromTop {
+  50% { transform: translateY(-100%); opacity: 0; }
+  55%, 75% { transform: translateY(0); opacity: 1; }
+  80%, 100% { opacity: 0; }
+}
+
+@keyframes slideFromBottom {
+  75% { transform: translateY(100%); opacity: 0; }
+  80%, 100% { transform: translateY(0); opacity: 1; }
+}
+
+/* 🔁 Smooth fade-in/out transition */
+@keyframes slideIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* 📱 Mobile responsiveness */
+@media (max-width: 768px) {
+  .slider {
+    height: 40vh; /* smaller on mobile */
+  }
+
+  .slider img {
+    object-fit: cover;
+  }
+}
+
+/* 📲 Smaller phones */
+@media (max-width: 480px) {
+  .slider {
+    height: 35vh;
+  }
+}
+
+
+
+/* call order*/
+
+.call-order{
+    background-color: black;
+    text-align: center;
+    color: white;
+    padding: 10px;
+}
+
+/* promo slide */
+
+
+.promo-section {
+  width: 100%;
+  overflow: hidden;
+  background: #fff;
+  position: relative;
+  padding: 10px 0;
+  margin-bottom: 10px;
+  padding-left: 5px;
+}
+
+.section {
+  width: 100%;
+  overflow: hidden;
+  background: #fff;
+  position: relative;
+  padding: 10px 0;
+  padding-left: 5px;
+  margin-top: -20px;
+}
+
+/* product slides*/
+
+.product-slider {
+  width: 100%;
+  overflow: hidden;
+  background: #fff;
+  position: relative;
+  padding: 10px 0;
+  padding-left: 15px;
+}
+
+/* --- Slider Container --- */
+.promo-cards {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.promo {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.promo-cards::-webkit-scrollbar { display: none; }
+
+
+/* --- Each Card --- */
+.singles {
+  flex: 0 0 auto;
+  width: 280px; 
+  border-radius: 15px;
+  overflow: hidden;
+}
+  
+.single img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+  
+.singles img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 15px;
+}
+
+.single {
+  flex: 0 0 auto;
+  width: 100px; /* Between 250 - 350 */
+  overflow: hidden;
+
+}
+.single .slider{
+    border-radius: 5px;
+}
+
+.singlet h1 {
+  font-size: 15px;
+  text-align: center;
+  margin-bottom: -10px;
+}
+.singlet p {
+  font-size: 15px;
+  text-align: center;
+  margin-bottom: -5px;
+}
+
+.singlet {
+  position: relative; 
+  width: 200px;
+  border-radius: 15px;
+  overflow: hidden;
+  flex: 0 0 auto;
+  padding: 5px;
+  background: #fff;
+  text-align: center;
+}
+.singlet img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+/* 💥 Make span appear at top-right like a sale badge */
+.singlet span {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #f97316; /* orange color */
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 4px 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+
+.flash-sale {
+    height: 10hv;
+    background-color: red;
+    color: white;
+    margin-bottom: -20px;
+    position: relative; 
+    width: 100%;
+}
+
+
+.flash-saller {
+    height: 10hv;
+    background-color: black;
+    color: white;
+    margin-bottom: 25px;
+    position: relative; 
+    width: 100%;
+}
+
+.flash-sellers {
+    height: 10hv;
+    background-color: white;
+    color: black;
+    margin-bottom: 25px;
+    position: relative; 
+    width: 100%;
+}
+
+.deals {
+    height: 10hv;
+    background-color: black;
+    color: white;
+    margin-bottom: 45px;
+    position: relative; 
+    width: 100%;
+}
+
+
+
+h6{
+    font-size: 15px;
+    padding: 10px;
+    margin-bottom: -30px;
+}
+
+.flash-sale p {
+    font-size: 15px;
+    padding: 10px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.flash span{
+    position: absolute;
+  top: 30px;
+  right: 170px;
+  color: white;
+  font-size: 14px;
+  padding: 4px 15px;
+  font-weight: 500;
+    
+}
+
+.more {
+  position: absolute;
+  top: -15px;
+  right: 1px;
+  color: white;
+  font-size: 14px;
+  padding: 4px 15px;
+  font-weight: bold;
+}
+
+.more a{
+    color: white;
+}
+
+
+.product-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  background: white;
+  padding: 5px;
+  gap: 5px;
+  justify-items: center;
+}
+
+.product-row .col-1 {
+  background: #fff;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding-left: 3px;
+}
+
+.product-row .col-1:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.product-row img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 3px;
+}
+
+/* ✅ Mobile: 4 columns */
+@media (max-width: 768px) {
+  .product-row {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ✅ Desktop: 6+ columns */
+@media (min-width: 1024px) {
+  .product-row {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+
+.col-1 h1 {
+  font-size: 15px;
+  text-align: center;
+}
+
+.product {
+    display: flex;
+    background-color: #fff;
+    width: 100%;
+    max-width: 500px;
+    margin-top: 10px;
+    height: 150hv;
+}
+
+.product-desc {
+    display: flex;
+    background-color: #fff;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.add {
+
+    width: 100%;
+    max-width: 100px;
+    height: 40px;
+}
+
+.buy {
+    width: 100px;
+    height: 40px;
+}
+
+.product img{
+    width: 100%;
+    max-width: 200px;
+    height: 100hv;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+/*-- long product list -@-*/
+
+.products-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  background: white;
+  padding: 5px;
+  gap: 15px;
+  justify-items: center;
+}
+
+.products-row .col-1 {
+  background: #fff;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding-left: 3px;
+}
+
+.products-row .col-1:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.products-row img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 3px;
+}
+
+/* ✅ Mobile: 4 columns */
+@media (max-width: 768px) {
+  .products-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ✅ Desktop: 6+ columns */
+@media (min-width: 1024px) {
+  .products-row {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+
+.col-1 h1 {
+  font-size: 15px;
+  text-align: center;
+}
+
+
+
+/* ... existing header styles unchanged ... */
+
+/* --- Jumia-like Search --- */
+.search-bar {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin: 0 20px;
+  max-width: 500px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 14px 0 0 14px;
+  outline: none;
+  font-size: 0.95rem;
+}
+
+.search-bar button {
+  background: #f97316;
+  border: none;
+  color: #fff;
+  padding: 9px 14px;
+  border-radius: 0 14px 14px 0;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.search-bar button:hover {
+  background: #e66410;
+}
+
+/* --- Mobile Search --- */
+.mobile-search {
+  display: none;
+  background: #fff;
+  padding: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  position: sticky;
+  top: 70px;
+  z-index: 999;
+}
+
+.mobile-search input {
+  width: 100%;
+  padding: 10px 35px 10px 10px;
+  border: 1px solid #ccc;
+  border-radius: 19px;
+  font-size: 0.95rem;
+}
+
+.mobile-search .search-icon {
+  position: absolute;
+  right: 25px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .desktop-search {
+    display: none;
+  }
+  .mobile-search {
+    display: block;
+  }
+}
+
+/* 🔽 Search Results Dropdown */
+.search-results {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  list-style: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  max-height: 250px;
+  overflow-y: auto;
+  display: none;
+  z-index: 999;
+}
+
+.search-results li {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+ 
+ .search-results li:hover {
+  background: #f5f5f5;
+  color: #f68b1e;
+}
+
+/* 👤 Dropdown */
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 60px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  display: none;
+  flex-direction: column;
+  min-width: 140px;
+  z-index: 999;
+}
+.dropdown a {
+  padding: 10px;
+  text-decoration: none;
+  color: #333;
+}
+
+.dropdown a:hover {
+  background: #f9f9f9;
+  }
+  
+  #user-area a{
+      text-decoration: none;
+  }
+  
+    .logo a{
+      text-decoration:none;
+      color: black;
+  }
+  
+  .icon a{
+      color: black;
+  }
+  
+  
+  
+
+</style>
+</head>
+<body>
+    
+    <div class="slider">
+  <img src="images.jpg" alt="Neolife Store for All your Needs" class="slide from-left">
+  <img src="1000087987-min.jpg" alt="cheapest online customers for every" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom">
+</div>
+
+<header>
+  <div class="left-section">
+    <div class="menu-btn" id="menu-btn">&#9776;</div>
+    <div class="logo"><a href="index.html">NEOSTORE</a></div>
+  </div>
+  
+  <!-- 🔍 Search Bar (Desktop) -->
+      <div class="search-bar desktop-search">
+        <input type="text" id="search-input" placeholder="Search for products, categories, and more..." />
+        <button id="search-btn"><i class="fa-solid fa-search"></i></button>
+      </div>
+      
+  
+  <nav id="nav">
+    <button class="close-btn hidden" id="close-btn">&times;</button>
+    <a href="#product">Neo Ship</a>
+    <a href="#product">Shop</a>
+    <a href="#about">Contact</a>
+  </nav>
+  <div style="display:flex;align-items:center">
+    <div id="user-area" class="icon" title="Sign Up / Login">  <a href="register.html">
+        <i class="fa-solid fa-user"></i>
+    <span id="user-text-mini" style="margin-left:8px"></span></a></div>
+    <div style="width:12px"></div>
+    
+    <div id="cart-btn" class="icon" title="Cart"><a href="cart.html"><i class="fa-solid fa-cart-shopping"></i></a> <span id="cart-count" style="font-weight:600;margin-left:6px;color:black;border-radius:5px;"></span></div>
+  </div>
+</header>
+<!-- 🔍 Mobile Search Box (Below Header) -->
+  <div class="mobile-search">
+    <input type="text" id="mobile-search-input" placeholder="Search products..." />
+    <i class="fa-solid fa-search search-icon"></i>
+  </div>
+
+<main>
+  <!-- SPA pages placeholders -->
+  <section id="page-product" class="page">
+      
+      <style>
+          #page-product{
+              display: none;
+          }
+      </style>
+      
+    <div class="grid">
+      <div>
+        <div class="card product">
+          <img id="product-image" src="1000086128-min.png.jpg" alt="product image">
+          <h1 id="product-title">Vitamin</h1>
+          <div class="price" id="product-price">$15.19</div>
+          <p class="product-desc">High quality product. Use the Add to cart button to store this item in your cart. Cart persists across pages and sessions.</p>
+          <div style="margin-top:12px;display:flex;gap:10px">
+            <button id="add-to-cart" class="btn">Add to cart</button>
+            <button id="buy-now" class="btn ghost">Buy Now</button>
+          </div>
+        </div>
+        <div style="margin-top:14px" class="card">
+          <h3>Product details</h3>
+          <ul style="color:var(--muted)">
+            <li>Weight: 200g</li>
+            <li>Made with care</li>
+            <li>30-day returns</li>
+          </ul>
+        </div>
+      </div>
+      <aside>
+        <div class="card">
+          <h3>Your Cart</h3>
+          <div class="cart-list" id="cart-list"></div>
+          <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="color:var(--muted)">Subtotal</div>
+              <div style="font-weight:700;font-size:18px" id="cart-subtotal">$0.00</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button id="goto-cart" class="btn">Go to cart page</button>
+              <button id="checkout-now" class="btn ghost">Checkout (PayPal)</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+  
+  
+  <style>
+          #page-cart{
+              display: none;
+          }
+      </style>
+  <!-- Cart Page -->
+  <section id="page-cart" class="page hidden">
+    <div class="card">
+      <h2>Your Cart</h2>
+      <div id="cart-full-list" class="cart-list"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+        <div>
+          <div style="color:var(--muted)">Total</div>
+          <div style="font-weight:700;font-size:20px" id="cart-total">$0.00</div>
+        </div>
+        <div>
+          <div id="paypal-container"></div>
+          <div style="margin-top:8px"><button id="continue-shopping" class="btn ghost">Continue shopping</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+<style>
+          #page-login{
+              display: none;
+          }
+      </style>
+
+  <!-- Login / Signup Page -->
+  <section id="page-login" class="page hidden">
+    <div class="card" style="max-width:480px;margin:auto">
+      <h2 id="auth-title">Sign Up</h2>
+      <form id="auth-form">
+        <input id="auth-name" type="text" placeholder="Full name (for sign up)">
+        <input id="auth-email" type="email" placeholder="Email" required>
+        <input id="auth-password" type="password" placeholder="Password" required>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button type="submit" class="btn">Submit</button>
+          <button type="button" id="auth-toggle" class="btn ghost">Switch to Login</button>
+        </div>
+        <div style="margin-top:8px;color:var(--muted)"> </div>
+      </form>
+    </div>
+  </section>
+  
+    
+<style>
+          #page-dashboard{
+              display: none;
+          }
+      </style>
+      
+
+  <!-- Dashboard Page -->
+  <section id="page-dashboard" class="page hidden">
+    <div class="card" style="max-width:700px;margin:auto">
+      <h2>Dashboard</h2>
+      <div id="dashboard-welcome">Welcome</div>
+      <div style="margin-top:12px"><button id="logout-btn" class="btn ghost">Logout</button></div>
+    </div>
+  </section>
+</main>
+
+<div id="modal-root" class="hidden"></div>
+
+<div class="call-order">
+    CALL TO ORDER 08085995394  08109538280
+</div>
+<div class="promo-section">
+    <div class="promo-cards" id="promoCards">
+      <div class="singles"><a href="apparel.html"><img src="1000087987-min.jpg" alt=""></a></div>
+      <div class="singles"><a href="Electronics.html"><img src="images.jpg" alt=""></a></div>
+      <div class="singles"><a href="Automobile.html"><img src="1000078420-min.jpg" alt=""></a></div>
+      <div class="singles"><a href=""><img src="1000078564-min.jpg" alt=""></a></div>
+      <div class="singles"><a href=""><img src="1000078420-min.jpg" alt=""></a></div>
+      <div class="singles"><a href=""><img src="1000078564-min.jpg" alt=""></a></div>
+      <div class="singles"><a href=""><img src="1000078564-min.jpg" alt=""></a></div>
+       <div class="singles"><a href=""><img src="1000078564-min.jpg" alt=""></a></div>
+       <div class="singles"><a href=""><img src="1000078564-min.jpg" alt=""></a></div>
+       <div class="singles"><a href=""><img src="1000078564-min.jpg" alt=""></a></div>
+       <div class="singles"><a href=""><img src="1000078564-min.jpg" alt=""></a></div>
+       <div class="singles"><a href=""><img src="1000078564-min.jpg" alt=""></a></div>
+       <div class="singles"><a href=""><img src="1000078564-min.jpg" alt=""></a></div>
+       <div class="singles"><a href=""><img src="1000078564-min.jpg" alt=""></a></div>
+      </div>
+     </div>
+
+  
+  <div class="promo-section">
+    <div class="promo-cards" id="promoCards">
+     <div class="single">
+       <div class="slider">
+  <img src="1000087987-min.jpg" alt="" class="slide from-left">
+  <img src="IMG-20251024-WA0004.jpg" alt="" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom"></div>
+  </div>
+  <div class="single">
+       <div class="slider">
+  <img src="1000078564-min.jpg" alt="" class="slide from-left">
+  <img src="IMG-20251024-WA0004.jpg" alt="" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom"></div>
+  </div>
+  
+  <div class="single">
+       <div class="slider">
+  <img src="1000078564-min.jpg" alt="" class="slide from-left">
+  <img src="IMG-20251024-WA0004.jpg" alt="" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom"></div>
+  </div>
+  
+   <div class="single">
+    <div class="slider">
+  <img src="1000078564-min.jpg" alt="" class="slide from-left">
+  <img src="IMG-20251024-WA0004.jpg" alt="" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom"></div>
+    </div>
+  
+  <div class="single">
+    <div class="slider">
+  <img src="1000078564-min.jpg" alt="" class="slide from-left">
+  <img src="IMG-20251024-WA0004.jpg" alt="" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom"></div>
+    </div>
+      <div class="single">
+    <div class="slider">
+  <img src="1000078564-min.jpg" alt="" class="slide from-left">
+  <img src="IMG-20251024-WA0004.jpg" alt="" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom"></div>
+    </div>
+    
+    <div class="single">
+    <div class="slider">
+  <img src="1000078564-min.jpg" alt="" class="slide from-left">
+  <img src="IMG-20251024-WA0004.jpg" alt="" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom"></div>
+     </div>
+      
+      <div class="single">
+    <div class="slider">
+  <img src="1000078564-min.jpg" alt="" class="slide from-left">
+  <img src="IMG-20251024-WA0004.jpg" alt="" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom"></div>
+    </div>
+       <div class="single">
+    <div class="slider">
+  <img src="1000078564-min.jpg" alt="" class="slide from-left">
+  <img src="IMG-20251024-WA0004.jpg" alt="" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom"></div>
+    </div>
+    
+       <div class="single">
+    <div class="slider">
+  <img src="1000078564-min.jpg" alt="" class="slide from-left">
+  <img src="IMG-20251024-WA0004.jpg" alt="" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom"></div>
+    </div>
+    
+       <div class="single">
+    <div class="slider">
+  <img src="1000078564-min.jpg" alt="" class="slide from-left">
+  <img src="IMG-20251024-WA0004.jpg" alt="" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom"></div>
+    </div>
+    
+       <div class="single">
+    <div class="slider">
+  <img src="1000078564-min.jpg" alt="" class="slide from-left">
+  <img src="IMG-20251024-WA0004.jpg" alt="" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom"></div>
+    </div>
+    
+       <div class="single">
+    <div class="slider">
+  <img src="1000078564-min.jpg" alt="" class="slide from-left">
+  <img src="IMG-20251024-WA0004.jpg" alt="" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom"></div>
+    </div>
+<div class="single">
+    <div class="slider">
+  <img src="1000078564-min.jpg" alt="" class="slide from-left">
+  <img src="IMG-20251024-WA0004.jpg" alt="" class="slide from-top">
+  <img src="1000078515-min.jpg" alt="Free Shipping for Orders above $40" class="slide from-right">
+  <img src="1000078420-min.jpg" alt="best Online shopping for American" class="slide from-bottom"></div>
+    </div>
+    
+  </div>
+ </div>
+ </div>
+  <div class="section">
+    <div class="promo" id="promoCards">
+     <div class="single"><img src="1000088137-min.png.jpg" alt=""></div>
+      <div class="single"><img src="1000088139-min.png.jpg" alt=""></div>
+       <div class="single"><img src="1000088140-min.png.jpg" alt=""></div>
+      <div class="single"><img src="1000088141-min.png.jpg" alt=""></div>
+      <div class="single"><img src="1000088142-min.png.jpg" alt=""></div>
+      <div class="single"><img src="1000088143-min.png.jpg" alt=""></div>
+      <div class="single"><img src="1000088144-min.png.jpg" alt=""></div>
+       <div class="single"><img src="1000088118-min.png.jpg" alt=""></div>
+      <div class="single"><img src="1000088145-min.png.jpg" alt=""></div>
+      <div class="single"><img src="1000088146-min.png.jpg" alt=""></div>
+      <div class="single"><img src="1000088147-min.png.jpg" alt=""></div>
+      <div class="single"><img src="1000088148-min.png.jpg" alt=""></div>
+      <div class="single"><img src="1000088149-min.png.jpg" alt=""></div>
+       <div class="single"><img src="1000088151-min.png.jpg" alt=""></div>
+      <div class="single"><img src="1000088152-min.png.jpg" alt=""></div>
+      <div class="single"><img src="1000088153-min.png.jpg" alt=""></div>
+      <div class="single"><img src="1000078564-min.jpg" alt=""></div>
+      <div class="single"><img src="1000078420-min.jpg" alt=""></div>
+      <div class="single"><img src="1000078564-min.jpg" alt=""></div>
+      <div class="single"><img src="1000078564-min.jpg" alt=""></div>
+       <div class="single"><img src="1000078564-min.jpg" alt=""></div>
+      <div class="single"><img src="1000078564-min.jpg" alt=""></div>
+    </div>
+       </div>
+         <div class="flash-sale">
+      <div class="flash">
+          <h6>Flash Sales</h6>
+  <p>TIME LEFT:</p><span>04h:26m:43s</span>
+      <h4 class="more">
+         <a href="#">See All</a>
+      </h4>
+      </div>
+  </div>
+  
+  <div class="promo-section">
+    <div class="promo-cards" id="promoCards">
+     <div class="singlet"> <a href="product1.html"><img src="1000088114-min.png.jpg" alt=""></a>
+     <h1>women's summer...</h1><p>$15.1⁹</p><p>14 remaining</p> <span>-34</span></div>
+     
+      <div class="singlet"><a href="product2.html"><img src="1000088109-min.png.jpg" alt=""></a><h1>women's solid folds...</h1><p>$19.8⁹</p><p>19 remaining</p> <span>-21</span></div>
+      
+      <div class="singlet"><a href="product3.html"><img
+ src="1000088110-min.png.jpg" alt=""></a><h1>items name</h1><p>$27.8⁷</p><p>50 remaining</p> <span>-14</span></div>
+ 
+      <div class="singlet"><a href="product4.html"><img src="1000088108-min.png.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p><p>50 remaining</p> <span>-14</span></div></a>
+      
+      <div class="singlet"><a href="product5.html"><img src="1000088115-min.png.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p><p>50 remaining</p> <span>-14</span></div></a>
+      
+      <div class="singlet"><a href="product6.html"><img src="1000088116-min.png.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p><p>50 remaining</p> <span>-14</span></div></a>
+      
+      <div class="singlet"><a href="product7.html"><img src="1000088117-min.png.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p><p>50 remaining</p> <span>-14</span></div></a>
+      
+       <div class="singlet"><a href="product8.html"><img src="1000088118-min.png.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p><p>50 remaining</p> <span>-14</span></div></a>
+       
+      <div class="singlet"><a href="product9.html"><img src="1000088119-min.png.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p><p>50 remaining</p> <span>-14</span></div></a>
+      
+      <div class="singlet"><a href="product10.html"><img src="1000088120-min.png.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p><p>50 remaining</p> <span>-14</span></div></a>
+      
+      <div class="singlet"><a href="product11.html"><img src="1000088121-min.png.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p><p>50 remaining</p> <span>-14</span></div></a>
+      
+      <div class="singlet"><a href="product12.html"><img src="1000088122-min.png.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p><p>50 remaining</p> <span>-14</span></div></a>
+      
+      <div class="singlet"><a href="product13.html"><img src="1000088123-min.png.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p><p>50 remaining</p> <span>-14</span></div></a>
+      
+       <div class="singlet"><a href="product14.html"><img src="1000088124-min.png.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p><p>50 remaining</p> <span>-14</span></div></a>
+       
+      <div class="singlet"><a href="product15.html"><img src="1000088126-min.png.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p><p>50 remaining</p> <span>-14</span></div></a>
+      </div>
+    </div>
+
+
+  <div class="product-row">
+  <div class="col-1"><img src="1000088128-min.png.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000088129-min.png.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000088130-min.png.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000088132-min.png.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000088133-min.png.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000088134-min.png.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000088135-min.png.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000088136-min.png.jpg" alt=""><h1>items name</h1></div>
+</div>
+<div>
+       <div class="flash-saller">
+          <h6>Top sellers</h6>
+      <h4 class="more">
+         <a href="#">See All</a>
+      </h4>
+      </div>
+  </div>
+  
+  <div class="promo-section">
+    <div class="promo-cards" id="promoCards">
+     <div class="singlet"><img src="1000078564-min.jpg" alt="">
+     <h1>items name</h1><p>$24.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$24.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img
+ src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+       <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+       <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      </div>
+    </div>
+
+
+  <div class="product-row">
+  <div class="col-1"><img src="1000078420-min.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="IMG-20251024-WA0004.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000078420-min.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="IMG-20251024-WA0004.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000078420-min.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="IMG-20251024-WA0004.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000078420-min.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="IMG-20251024-WA0004.jpg" alt=""><h1>items name</h1></div>
+</div>
+
+<div class="flash-sellers">
+          <h6>Sponsored Products</h6>
+      <h4 class="more">
+         <a href="#">See All</a>
+      </h4>
+      </div>
+  </div>
+  <div class="promo-section">
+    <div class="promo-cards" id="promoCards">
+     <div class="singlet"><img src="1000078564-min.jpg" alt="">
+     <h1>items name</h1><p>$24.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$24.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img
+ src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+       <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+       <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      </div>
+    </div>
+    
+    
+    <div class="deals">
+          <h6>Black Friday Deals <br> Up to 60% Off</h6>
+      <h4 class="more">
+         <a href="#">See All</a>
+      </h4>
+      </div>
+  </div>
+    <div class="products-row">
+  <div class="col-1"><img src="1000078420-min.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="IMG-20251024-WA0004.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000078420-min.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="IMG-20251024-WA0004.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000078420-min.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="IMG-20251024-WA0004.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000078420-min.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="IMG-20251024-WA0004.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="IMG-20251024-WA0004.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000078420-min.jpg" alt=""><h1>items name</h1></div>
+    <div class="col-1"><img src="1000078420-min.jpg" alt=""><h1>items name</h1></div>
+    
+    <div class="col-1"><img src="IMG-20251024-WA0004.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000078420-min.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="IMG-20251024-WA0004.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="1000078420-min.jpg" alt=""><h1>items name</h1></div>
+  <div class="col-1"><img src="IMG-20251024-WA0004.jpg" alt=""><h1>items name</h1></div>
+  </div>
+
+    <div class="deals">
+          <h6>Hisense and Maxi<br>Black Friday Deals</h6>
+      <h4 class="more">
+         <a href="#">See All</a>
+      </h4>
+      </div>
+  </div>
+  
+   <div class="promo-section">
+    <div class="promo-cards" id="promoCards">
+     <div class="singlet"><img src="1000078564-min.jpg" alt="">
+     <h1>items name</h1><p>$24.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$24.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img
+ src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+       <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+       <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      </div>
+    </div>
+    <div class="deals">
+          <h6>Phone Deals <br>Black Friday Deals</h6>
+      <h4 class="more">
+         <a href="#">See All</a>
+      </h4>
+      </div>
+  </div>
+  
+   <div class="promo-section">
+    <div class="promo-cards" id="promoCards">
+     <div class="singlet"><img src="1000078564-min.jpg" alt="">
+     <h1>items name</h1><p>$24.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$24.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img
+ src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+       <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078420-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+       <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      <div class="singlet"><img src="1000078564-min.jpg" alt=""><h1>items name</h1><p>$27.8⁷</p> <span>-14</span></div>
+      </div>
+    </div>
+
+<footer>
+  NEOSTORE 
+</footer>
+
+<script>
+/////////////////////////
+// Constants
+const CART_KEY = 'neo_cart_v1';
+const AUTH_KEY = 'neo_users_v1';
+const SESSION_KEY = 'neo_session_v1';
+const INACTIVE_MS = 10 * 60 * 1000; // 10 min
+const INACT_KEY = 'neo_last_activity_v1';
+const DELIVERY_COUNTRY_KEY = "neo_delivery_country_v1";
+
+// Pages
+const pages = {
+  product: document.getElementById('page-product'),
+  cart: document.getElementById('page-cart'),
+  login: document.getElementById('page-login'),
+  dashboard: document.getElementById('page-dashboard')
+};
+
+// Show SPA page
+function showPage(name){
+  Object.values(pages).forEach(p=>p.classList.add('hidden'));
+  pages[name].classList.remove('hidden');
+  location.hash = '#'+name;
+  if(name==='cart') renderCartFull();
+  if(name==='dashboard') renderDashboard();
+}
+
+// Init page
+window.addEventListener('hashchange', ()=> showPage(location.hash.replace('#','') || 'product'));
+if(!location.hash) location.hash = '#product';
+showPage(location.hash.replace('#',''));
+
+// Product data
+const product = {
+  id: 'p1',
+  title: document.getElementById('product-title').textContent,
+  price: 24.99,
+  image: document.getElementById('product-image').src
+};
+document.getElementById('product-price').textContent = '$'+product.price.toFixed(2);
+
+/////////////////////////
+// Cart functions
+function getCart(){ return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }
+function saveCart(cart){ localStorage.setItem(CART_KEY, JSON.stringify(cart)); renderMiniCart(); updateDeliveryTotalDisplay(); }
+function addToCart(item){
+  const cart = getCart();
+  const found = cart.find(i=>i.id===item.id);
+  if(found) found.qty += 1; else cart.push({...item, qty:1});
+  saveCart(cart);
+}
+function removeFromCart(id){ let cart=getCart(); cart = cart.filter(i=>i.id!==id); saveCart(cart);}
+function updateQty(id, qty){ const cart = getCart(); const it = cart.find(i=>i.id===id); if(!it) return; it.qty = qty; if(it.qty<=0) removeFromCart(id); else saveCart(cart);}
+function cartSubtotal(){ return getCart().reduce((s,i)=>s+i.price*i.qty,0); }
+
+// Mini cart render
+const cartList = document.getElementById('cart-list');
+const cartCount = document.getElementById('cart-count');
+function renderMiniCart(){
+  const cart = getCart();
+  cartCount.textContent = cart.reduce((s,i)=>s+i.qty,0) || '';
+  cartList.innerHTML = '';
+  if(cart.length===0){ cartList.innerHTML = '<div style="color:var(--muted)">Cart is empty</div>'; document.getElementById('cart-subtotal').textContent = '$0.00'; return; }
+  cart.forEach(i=>{
+    const el = document.createElement('div'); el.className='cart-item';
+    el.innerHTML = `<img src="${i.image}"><div style='flex:1'><div style="font-weight:600">${i.title}</div><div style="color:var(--muted)">$${i.price.toFixed(2)}</div></div><div style='text-align:right'><div class='qty'>x ${i.qty}</div></div>`;
+    cartList.appendChild(el);
+  });
+document.getElementById('cart-subtotal').textContent = '$'+cartSubtotal().toFixed(2);
+}
+renderMiniCart();
+
+// Full cart render
+function renderCartFull(){
+  const el = document.getElementById('cart-full-list'); el.innerHTML='';
+  const cart = getCart();
+  if(cart.length===0){ el.innerHTML='<div style="color:var(--muted)">Your cart is empty</div>'; document.getElementById('cart-total').textContent='$0.00'; return; }
+  cart.forEach(i=>{
+    const row = document.createElement('div'); row.className='cart-item';
+    row.innerHTML = `<img src='${i.image}'><div style='flex:1'><div style='font-weight:700'>${i.title}</div><div style='color:var(--muted)'>$${i.price.toFixed(2)}</div></div>
+      <div style='display:flex;flex-direction:column;align-items:flex-end'>
+        <input type='number' min='0' value='${i.qty}' data-id='${i.id}' class='qty-input' style='width:64px;padding:6px;border-radius:6px;border:1px solid #e5e7eb'>
+        <button data-id='${i.id}' class='btn remove-item' style='margin-top:8px'>Remove</button>
+      </div>`;
+    el.appendChild(row);
+  });
+  // hooks
+  document.querySelectorAll('.remove-item').forEach(b=>b.addEventListener('click',e=>{ removeFromCart(e.target.dataset.id); renderCartFull(); }));
+  document.querySelectorAll('.qty-input').forEach(inp=>inp.addEventListener('change',e=>{ const id=e.target.dataset.id; const v=parseInt(e.target.value)||0; updateQty(id,v); renderCartFull(); }));
+  updateDeliveryTotalDisplay();
+  renderPayPalButton();
+}
+/////////////////////////
+// Buttons
+document.getElementById('add-to-cart').addEventListener('click',()=>{ addToCart(product); alert('Added to cart'); });
+document.getElementById('goto-cart').addEventListener('click',()=> showPage('cart'));
+document.getElementById('continue-shopping').addEventListener('click',()=> showPage('product'));
+document.getElementById('buy-now').addEventListener('click',()=>{ addToCart(product); showPage('cart'); });
+
+/////////////////////////
+// Auth functions
+function getUsers(){ return JSON.parse(localStorage.getItem(AUTH_KEY)||'{}'); }
+function saveUsers(u){ localStorage.setItem(AUTH_KEY, JSON.stringify(u)); }
+function signup(name,email,password){ const users = getUsers(); if(users[email]) throw new Error('User exists'); users[email] = {name,email,password}; saveUsers(users); login(email,password);}
+function login(email,password){ const users = getUsers(); if(!users[email] || users[email].password !== password) throw new Error('Invalid credentials'); localStorage.setItem(SESSION_KEY, JSON.stringify({email,name:users[email].name,loggedAt:Date.now()})); renderUserUI(); }
+function logout(){ localStorage.removeItem(SESSION_KEY); renderUserUI(); showPage('product'); }
+function currentUser(){ return JSON.parse(localStorage.getItem(SESSION_KEY)||'null'); }
+
+// Auth form
+const authForm = document.getElementById('auth-form');
+const authToggle = document.getElementById('auth-toggle');
+let authMode = 'signup';
+authToggle.addEventListener('click', ()=>{
+  authMode = authMode === 'signup' ? 'login' : 'signup';
+  document.getElementById('auth-title').textContent = authMode==='signup' ? 'Sign Up' : 'Login';
+  document.getElementById('auth-name').style.display = authMode==='signup' ? 'block' : 'none';
+  authToggle.textContent = authMode==='signup' ? 'Switch to Login' : 'Switch to Sign Up';
+});
+authForm.addEventListener('submit', e=>{
+  e.preventDefault();
+  const name = document.getElementById('auth-name').value.trim();
+  const email = document.getElementById('auth-email').value.trim();
+  const pw = document.getElementById('auth-password').value;
+  try{
+    if(authMode==='signup') signup(name,email,pw); else login(email,pw);
+    alert('Logged in'); showPage('dashboard');
+  }catch(err){ alert(err.message); }
+});
+
+// User area
+document.getElementById('user-area').addEventListener('click', ()=>{ if(currentUser()) showPage('dashboard'); else showPage('login'); });
+function renderUserUI(){ const u=currentUser(); document.getElementById('user-text-mini').textContent = u ? u.name : 'Sign in'; }
+renderUserUI();
+document.getElementById('logout-btn').addEventListener('click', ()=>{ logout(); });
+
+/////////////////////////
+// Auto-logout
+function touchActivity(){ localStorage.setItem(INACT_KEY, Date.now()); }
+['click','keydown','mousemove','touchstart'].forEach(evt=> window.addEventListener(evt, touchActivity));
+function checkInactivity(){
+  const last = parseInt(localStorage.getItem(INACT_KEY)||'0'); if(!last){ touchActivity(); return; }
+  if(Date.now() - last > INACTIVE_MS){ if(currentUser()){ alert('You have been logged out due to inactivity'); logout(); } }
+}
+setInterval(checkInactivity,10000);
+if(!localStorage.getItem(INACT_KEY)) touchActivity();
+
+//////////////////////////
+function renderPayPalButton(){
+  const container = document.getElementById('paypal-container');
+  container.innerHTML='';
+  
+  const subtotal = cartSubtotal();
+  const country = localStorage.getItem("neo_delivery_country_v1") || "Other";
+  const deliveryFee = calculateDeliveryFee(country);
+  const total = subtotal + deliveryFee;   // ✅ include delivery fee
+  
+  if(total <= 0) return;
+
+  const user = currentUser();
+  if(!user){
+    const b = document.createElement('button');
+    b.className = 'btn';
+    b.textContent = 'Login to checkout';
+    b.addEventListener('click', ()=> showPage('login'));
+    container.appendChild(b);
+    return;
+  }
+
+  paypal.Buttons({
+    createOrder: (data, actions) => actions.order.create({
+      purchase_units: [{
+        amount: {
+          value: total.toFixed(2),   // ✅ send subtotal + delivery fee to PayPal
+          breakdown: {
+            item_total: { value: subtotal.toFixed(2), currency_code: "USD" },
+            shipping:   { value: deliveryFee.toFixed(2), currency_code: "USD" }
+          }
+        },
+        description: "NEOSTORE Order (includes delivery)"
+      }]
+    }),
+    onApprove: (data, actions) => actions.order.capture().then(details => {
+      alert('Payment completed by ' + (details.payer.name.given_name || 'Customer') + '. Order ID: ' + data.orderID);
+      localStorage.removeItem(CART_KEY);
+      renderMiniCart();
+      showPage('product');
+    }),
+    onError: err => {
+      console.error(err);
+      alert('Payment failed: ' + err);
+    }
+  }).render('#paypal-container');
+}
+
+/////////////////////////
+// Dashboard
+function renderDashboard(){ const u=currentUser(); document.getElementById('dashboard-welcome').textContent = u ? `Hello, ${u.name} (${u.email})` : 'Not logged in'; }
+
+/////////////////////////
+// Cart icon click
+document.getElementById('cart-btn').addEventListener('click', ()=> showPage('cart'));
+
+/////////////////////////
+// Hamburger menu
+const menuBtn = document.getElementById('menu-btn');
+const closeBtn = document.getElementById('close-btn');
+const nav = document.getElementById('nav');
+menuBtn.addEventListener('click',()=>{ nav.classList.add('active'); closeBtn.classList.remove('hidden'); });
+closeBtn.addEventListener('click',()=>{ nav.classList.remove('active'); closeBtn.classList.add('hidden'); });
+document.querySelectorAll('nav a').forEach(link=> link.addEventListener('click',()=>{ nav.classList.remove('active'); closeBtn.classList.add('hidden'); }));
+/////////////////////////
+// Delivery Fee
+function calculateDeliveryFee(country){
+  const cart = getCart();
+  const itemCount = cart.reduce((s,i)=>s+i.qty,0); if(itemCount===0) return 0;
+  const c = (country||'').trim().toLowerCase();
+  let feePer2 = 30;
+  if(['ghana','nigeria','kenya','south africa','cameroon','tanzania','uganda','zambia','ethiopia','africa'].some(x=>c.includes(x))) feePer2=27;
+  else if(['france','germany','italy','spain','uk','england','europe','sweden','netherlands'].some(x=>c.includes(x))) feePer2=18;
+  else if(['china','japan','india','thailand','philippines','asia','indonesia','malaysia','vietnam','pakistan'].some(x=>c.includes(x))) feePer2=25;
+  else if(['usa','united states','canada','mexico','america','brazil','argentina'].some(x=>c.includes(x))) feePer2=15;
+  else if(['turkey','greece','cyprus','mediterranean','israel','lebanon','morocco','tunisia','egypt'].some(x=>c.includes(x))) feePer2=22;
+  return feePer2 * Math.ceil(itemCount/2);
+}
+
+function getOrAskCountry(){
+  let country = localStorage.getItem(DELIVERY_COUNTRY_KEY);
+  if(!country){ country = prompt("Enter your country for delivery fee calculation:")||"Other"; localStorage.setItem(DELIVERY_COUNTRY_KEY,country); }
+  return country;
+}
+
+function updateDeliveryTotalDisplay(){
+  const subtotal = cartSubtotal();
+  const country = getOrAskCountry();
+  const deliveryFee = calculateDeliveryFee(country);
+  const total = subtotal + deliveryFee;
+  const totalDiv = document.getElementById('cart-total');
+  if(totalDiv){
+    totalDiv.innerHTML = `$${total.toFixed(2)}<div style="font-size:0.9rem;color:var(--muted)">(Subtotal: $${subtotal.toFixed(2)} + Delivery: $${deliveryFee.toFixed(2)})</div>`;
+  }
+}
+
+// Hook cart updates for delivery
+(function hookCartDeliveryUpdates(){
+  const oldSaveCart = saveCart;
+  saveCart = function(cart){ oldSaveCart(cart); if(location.hash==='#cart') updateDeliveryTotalDisplay(); };
+  const oldRenderCartFull = renderCartFull;
+  renderCartFull = function(){ oldRenderCartFull(); if(location.hash==='#cart') updateDeliveryTotalDisplay(); };
+})();
+
+// Update delivery display when cart page opens
+const originalShowPage = showPage;
+showPage = function(name){ originalShowPage(name); if(name==='cart') setTimeout(updateDeliveryTotalDisplay,300); };
+
+
+
+
+
+/* ---------- LIVE SEARCH PATCH (append to script.js) ----------
+   Appends robust live-search behavior without changing HTML/CSS.
+   - Safe: uses existing `products` array if available.
+   - Robust: finds input elements by multiple common IDs used before.
+----------------------------------------------------------------*/
+
+(function(){
+  // Use existing products array if defined; otherwise fallback to the sample list.
+  const productList = (typeof products !== 'undefined' && Array.isArray(products))
+    ? products
+    : [
+      { name: "Herbal Detox Tea", link: "product.html" },
+      { name: "Vitamin C Serum", link: "vitamin.html" },
+      { name: "Smart Fitness Watch", link: "product3.html" },
+      { name: "Protein Shake Mix", link: "product4.html" },
+      { name: "Wireless Earbuds", link: "product5.html" },
+      { name: "Aloe Vera Gel", link: "product6.html" },
+      { name: "Organic Honey", link: "product7.html" },
+      { name: "Bluetooth Speaker", link: "product8.html" },
+      { name: "Hair Growth Oil", link: "product9.html" },
+      { name: "Multivitamin Capsules", link: "product10.html" },
+    ];
+
+  // possible IDs used across your pages (keeps it flexible)
+  const desktopInputIds = ['searchInput','search-input','search-input-desktop','search-input-1','searchInputDesktop','search-input-1'];
+  const desktopResultsIds = ['searchResults','search-results','search_results','searchResultsList'];
+  const mobileInputIds = ['mobileSearchInput','mobile-search-input','mobileSearch','mobileSearchInput1'];
+  const mobileResultsIds = ['mobileSearchResults','mobile-search-results','mobileSearchResultsList'];
+
+  function getFirstExisting(idList){
+    for(const id of idList){
+      const el = document.getElementById(id);
+      if(el) return el;
+    }
+    return null;
+  }
+
+  // create UL element if not present (and attach right after input)
+  function ensureResultsList(inputEl, preferredIds){
+    // try to find sibling UL with one of preferredIds
+    for(const id of preferredIds){
+      const el = document.getElementById(id);
+      if(el && el.tagName && el.tagName.toLowerCase() === 'ul') return el;
+    }
+// if not, create one
+    const ul = document.createElement('ul');
+    ul.className = 'search-results';
+    // keep unique id
+    const genId = (preferredIds && preferredIds[0]) ? preferredIds[0] : ('sr-' + Math.random().toString(36).slice(2,9));
+    ul.id = genId;
+    // place after input
+    if(inputEl.parentNode){
+      inputEl.parentNode.appendChild(ul);
+    } else {
+      document.body.appendChild(ul);
+    }
+    // ensure style.display is none initially
+    ul.style.display = 'none';
+    return ul;
+  }
+    // render matched products into the results UL
+  function renderResults(ul, matches){
+    ul.innerHTML = '';
+    if(!matches || matches.length === 0){
+      const li = document.createElement('li');
+      li.textContent = 'No products found';
+      li.style.color = '#888';
+      li.style.cursor = 'default';
+      ul.appendChild(li);
+      return;
+    }
+    matches.forEach(p=>{
+      const li = document.createElement('li');
+      li.textContent = p.name;
+      li.style.cursor = 'pointer';
+      li.addEventListener('click', ()=>{
+        // navigate to link on click
+        window.location.href = p.link;
+      });
+      ul.appendChild(li);
+    });
+  }
+
+  // generic setup for an input and results UL
+  function setupInput(inputEl, resultsUl){
+    if(!inputEl || !resultsUl) return;
+
+    inputEl.addEventListener('input', (ev)=>{
+      const q = (ev.target.value || '').toLowerCase().trim();
+      if(q === ''){
+        resultsUl.style.display = 'none';
+        resultsUl.innerHTML = '';
+        return;
+      }
+      // filter products: include names that contain all words typed (order insensitive)
+      const terms = q.split(/\s+/).filter(Boolean);
+      const matches = productList.filter(p=>{
+        const lower = p.name.toLowerCase();
+        return terms.every(t => lower.includes(t));
+      }).slice(0, 20); // limit results
+      renderResults(resultsUl, matches);
+      resultsUl.style.display = 'block';
+    });
+
+    // keyboard support: Enter -> go to first match
+    inputEl.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){
+        const firstLi = resultsUl.querySelector('li');
+        if(firstLi && firstLi.textContent && productList.length){
+          // find product by name exactly or partial match
+          const name = firstLi.textContent;
+          const p = productList.find(x => x.name === name) || productList.find(x => x.name.toLowerCase().includes((inputEl.value||'').toLowerCase().trim()));
+          if(p && p.link){
+            window.location.href = p.link;
+          }
+        }
+      }
+    });
+
+    // hide when clicking outside
+    document.addEventListener('click', (e)=>{
+      if(e.target === inputEl) return;
+      if(resultsUl.contains(e.target)) return;
+      resultsUl.style.display = 'none';
+    });
+  }
+
+  // Initialize desktop search if present
+  const desktopInput = getFirstExisting(desktopInputIds);
+  const desktopResults = ensureResultsList(desktopInput, desktopResultsIds);
+  if(desktopInput){
+    setupInput(desktopInput, desktopResults);
+  }
+
+  // Initialize mobile search if present
+  const mobileInput = getFirstExisting(mobileInputIds);
+  const mobileResults = ensureResultsList(mobileInput, mobileResultsIds);
+  if(mobileInput){
+    setupInput(mobileInput, mobileResults);
+  }
+
+  // If neither input found, attempt to find inputs by common class names
+  if(!desktopInput && !mobileInput){
+    const possibleInputs = document.querySelectorAll('input[type="search"], input[placeholder*="Search"], input[placeholder*="search"]');
+    if(possibleInputs && possibleInputs.length){
+      possibleInputs.forEach(inp=>{
+        const ul = ensureResultsList(inp, ['searchResultsAuto']);
+        setupInput(inp, ul);
+      });
+    }
+  }
+
+  // expose helper for adding new products at runtime (optional)
+  window.__NEOSTORE_addProduct = function(prod){
+    if(prod && prod.name && prod.link) productList.push(prod);
+  };
+
+})(); 
+/* ---------- END PATCH ---------- */
+
+
+
+  // promo slide
+
+// ---------------- Auto Slide + Pause + Scrollable ----------------
+const slider = document.getElementById("promoCards");
+let speed = 0.8; // lower = slower, higher = faster
+let running = true;
+
+function autoScroll() {
+  if (running) {
+    slider.scrollLeft += speed;
+    // when reach end, restart from beginning
+    if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth) {
+      slider.scrollLeft = 0;
+    }
+  }
+  requestAnimationFrame(autoScroll);
+}
+
+// Start auto sliding
+requestAnimationFrame(autoScroll);
+
+// Pause when hover or touch
+slider.addEventListener("mouseenter", () => running = false);
+slider.addEventListener("mouseleave", () => running = true);
+slider.addEventListener("touchstart", () => running = false, { passive: true });
+slider.addEventListener("touchend", () => running = true, { passive: true });
+  
+  
+  
+  
+  
+  
+  
+  
+  
+/*----flash sales timer---*/
+
+  // Select the countdown <span> inside your .flash-sale
+  const countdownSpan = document.querySelector('.flash-sale span');
+
+  function updateCountdownToMidnight() {
+    const now = new Date();
+
+    // Set target time to next midnight
+    const midnight = new Date();
+    midnight.setHours(24, 0, 0, 0);
+
+    // Calculate the remaining time
+    const diff = midnight - now; // milliseconds
+
+    // Convert to hours, minutes, seconds
+    const hours = Math.floor(diff / 1000 / 3600);
+    const minutes = Math.floor((diff / 1000 % 3600) / 60);
+    const seconds = Math.floor(diff / 1000 % 60);
+
+    // Display with leading zeros
+    countdownSpan.textContent = 
+      `${String(hours).padStart(2, '0')}h:${String(minutes).padStart(2, '0')}m:${String(seconds).padStart(2, '0')}s`;
+
+    // If somehow negative (past midnight), reset instantly
+    if (diff <= 0) {
+      setTimeout(startCountdown, 1000);
+    }
+  }
+
+  function startCountdown() {
+    updateCountdownToMidnight();
+    setInterval(updateCountdownToMidnight, 1000);
+  }
+
+  // Start timer when page loads
+  startCountdown();
+  
+  
+  
+  
+  
+
+
+
+
+
+</script>
+
+<!-- Font Awesome -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</body>
+</html>
