@@ -1,9 +1,3 @@
-// Supabase init
-const supabase = supabase.createClient(
-  "",
-  "
-
-<script>
 // ======================================
 // 🔥 SUPABASE CONFIG
 // ======================================
@@ -149,4 +143,3 @@ document.getElementById("buy-now").addEventListener("click", () => {
 
 // Load cart automatically on page load
 loadCart();
-</script>
