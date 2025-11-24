@@ -29,17 +29,11 @@
 // npm i @supabase/supabase-js
 
 /* -------------------------- TYPEScript CLIENT / SERVER -------------------------- */
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js'
 
-
-const SUPABASE_URL = process.env.https://dfgzyrvobrmujcxomptb.supabase.co || 'https://dfgzyrvobrmujcxomptb.supabase.co';
-const SUPABASE_ANON_KEY = process.env.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmZ3p5cnZvYnJtdWpjeG9tcHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5NDI1MzUsImV4cCI6MjA3OTUxODUzNX0.LwyRyZ0e2wVWGgylcuCL2yJBhve0G9z84K5QWqHlG30 || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmZ3p5cnZvYnJtdWpjeG9tcHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5NDI1MzUsImV4cCI6MjA3OTUxODUzNX0.LwyRyZ0e2wVWGgylcuCL2yJBhve0G9z84K5QWqHlG30';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SERVICE_ROLE_KEY';
-
-
-// Public client (safe for browser)
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+const supabaseUrl = 'https://dfgzyrvobrmujcxomptb.supabase.co'
+const supabaseKey = process.env.SUPABASE_KEY
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 // Server client (use only on trusted server-side code). Keeps elevated privileges for admin tasks.
 export const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
