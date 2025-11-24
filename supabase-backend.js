@@ -1,7 +1,7 @@
 // Supabase init
 const supabase = supabase.createClient(
-  "https://YOUR_URL.supabase.co",
-  "YOUR_ANON_KEY"
+  "https://cdexhafusqreigjzjgsa.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkZXhoYWZ1c3FyZWlnanpqZ3NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODE5NTYsImV4cCI6MjA3OTQ1Nzk1Nn0.ugmBTZeEXOcAPPFXPeA_-Akbnwjfjz9Efl4EcTXy_sY"
 );
 
 
