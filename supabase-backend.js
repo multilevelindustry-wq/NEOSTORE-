@@ -1,12 +1,12 @@
 // ======================================
 // 🔥 SUPABASE CONFIG
 // ======================================
-const SUPABASE_URL = "https://cdexhafusqreigjzjgsa.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkZXhoYWZ1c3FyZWlnanpqZ3NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODE5NTYsImV4cCI6MjA3OTQ1Nzk1Nn0.ugmBTZeEXOcAPPFXPeA_-Akbnwjfjz9Efl4EcTXy_sY"
+const SUPABASE_URL = "https://dfgzyrvobrmujcxomptb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmZ3p5cnZvYnJtdWpjeG9tcHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5NDI1MzUsImV4cCI6MjA3OTUxODUzNX0.LwyRyZ0e2wVWGgylcuCL2yJBhve0G9z84K5QWqHlG30"
 
 
 
-const supabase = supabase.createClient(https://cdexhafusqreigjzjgsa.supabase.co, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkZXhoYWZ1c3FyZWlnanpqZ3NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODE5NTYsImV4cCI6MjA3OTQ1Nzk1Nn0.ugmBTZeEXOcAPPFXPeA_-Akbnwjfjz9Efl4EcTXy_sY"
+const supabase = supabase.createClient(https://dfgzyrvobrmujcxomptb.supabase.co, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmZ3p5cnZvYnJtdWpjeG9tcHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5NDI1MzUsImV4cCI6MjA3OTUxODUzNX0.LwyRyZ0e2wVWGgylcuCL2yJBhve0G9z84K5QWqHlG30"
 );
 
 // ======================================
