@@ -1,9 +1,39 @@
+// Supabase Backend — Complete Backend + Auth + Cart + RLS + OTP + Social Login
+// ============================================================================
+// Ready-to-copy TypeScript code + SQL migration snippets for Supabase projects.
+// Features included (as requested):
+// 1) Email + Password signup/login
+// 2) Password reset (email reset link)
+// 3) Magic link (email) & OTP (email) login
+// 4) Social login (Google, GitHub, Facebook — via Supabase OAuth)
+// 5) Product / Category / ProductImages schema
+// 6) Cart & CartItems persisted per user
+// 7) Row-Level Security (RLS) policies for secure access
+// 8) Example server-side helpers for cart operations and protected routes
+// 9) SQL migration snippets for database setup & RLS
+// ---------------------------------------------------------------------------
+// Instructions
+// 1) Install the JS client: npm i @supabase/supabase-js
+// 2) Create a Supabase project, enable Auth providers (Google/GitHub) and Email settings.
+// 3) Run the SQL blocks in Supabase SQL Editor to create tables and policies.
+// 4) Replace env values with your SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (for server tasks) or ANON key for client tasks.
+// 5) This file contains both client-safe operations (signUp/signIn) and server-only examples (use SERVICE_ROLE_KEY on server only).
+/* -------------------------- ENVIRONMENT -------------------------- */
+// Put these in your environment (do NOT commit keys to source control)
+// SUPABASE_URL=https://your-project.supabase.co
+// SUPABASE_ANON_KEY=public-anon-key
+// SUPABASE_SERVICE_ROLE_KEY=service-role-secret (server only, required for secure server operations like verifying webhooks)
+
+
+/* -------------------------- INSTALL -------------------------- */
+// npm i @supabase/supabase-js
+
 /* -------------------------- TYPEScript CLIENT / SERVER -------------------------- */
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = process.env.https://dfgzyrvobrmujcxomptb.supabase.co || 'https://dfgzyrvobrmujcxomptb.supabase.co';
+const SUPABASE_ANON_KEY = process.env.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmZ3p5cnZvYnJtdWpjeG9tcHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5NDI1MzUsImV4cCI6MjA3OTUxODUzNX0.LwyRyZ0e2wVWGgylcuCL2yJBhve0G9z84K5QWqHlG30 || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmZ3p5cnZvYnJtdWpjeG9tcHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5NDI1MzUsImV4cCI6MjA3OTUxODUzNX0.LwyRyZ0e2wVWGgylcuCL2yJBhve0G9z84K5QWqHlG30';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SERVICE_ROLE_KEY';
 
 
