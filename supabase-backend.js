@@ -1,106 +1,152 @@
 // Supabase init
 const supabase = supabase.createClient(
-  "https://cdexhafusqreigjzjgsa.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkZXhoYWZ1c3FyZWlnanpqZ3NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODE5NTYsImV4cCI6MjA3OTQ1Nzk1Nn0.ugmBTZeEXOcAPPFXPeA_-Akbnwjfjz9Efl4EcTXy_sY"
+  "",
+  "
+
+<script>
+// ======================================
+// 🔥 SUPABASE CONFIG
+// ======================================
+const SUPABASE_URL = "https://cdexhafusqreigjzjgsa.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkZXhoYWZ1c3FyZWlnanpqZ3NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODE5NTYsImV4cCI6MjA3OTQ1Nzk1Nn0.ugmBTZeEXOcAPPFXPeA_-Akbnwjfjz9Efl4EcTXy_sY"
+
+
+
+const supabase = supabase.createClient(https://cdexhafusqreigjzjgsa.supabase.co, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkZXhoYWZ1c3FyZWlnanpqZ3NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODE5NTYsImV4cCI6MjA3OTQ1Nzk1Nn0.ugmBTZeEXOcAPPFXPeA_-Akbnwjfjz9Efl4EcTXy_sY"
 );
 
+// ======================================
+// 🔥 AUTH — SIGN UP / LOGIN
+// ======================================
 
-async function signUpUser(email, password, fullName, phone) {
-  const { data, error } = await supabase.auth.signUp({
+async function signUp(email, password) {
+  let { data, error } = await supabase.auth.signUp({
     email: email,
-    password: password,
-    options: {
-      data: { full_name: fullName, phone: phone }
-    }
+    password: password
   });
 
   if (error) {
-    alert("Sign up error: " + error.message);
+    alert("Signup Error: " + error.message);
     return;
   }
 
-  alert("Account created successfully! Please verify your email.");
+  alert("Signup successful! Check your email.");
 }
 
-
-async function loginUser(email, password) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
+async function login(email, password) {
+  let { data, error } = await supabase.auth.signInWithPassword({
+    email: email,
+    password: password
   });
 
   if (error) {
-    alert("Login failed: " + error.message);
+    alert("Login Error: " + error.message);
     return;
   }
 
-  alert("Logged in!");
+  alert("Login Successful!");
+  loadCart();
 }
 
-
-async function getUser() {
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
+// Check if logged-in
+async function getCurrentUser() {
+  const { data } = await supabase.auth.getUser();
+  return data?.user || null;
 }
 
+// ======================================
+// 🔥 CART FUNCTIONS
+// ======================================
 
-async function logout() {
-  await supabase.auth.signOut();
-  alert("Logged out!");
-}
-
-
-async function addToCart(productId) {
-  const { data: { user } } = await supabase.auth.getUser();
+// Add Cart Item
+async function addToCart(product) {
+  const user = await getCurrentUser();
   if (!user) {
-    alert("Please log in first.");
+    alert("Please login first!");
     return;
   }
 
-  const { error } = await supabase
+  let { error } = await supabase
     .from("cart")
-    .insert({ user_id: user.id, product_id: productId });
+    .insert({
+      user_id: user.id,
+      product_id: product.id,
+      title: product.title,
+      price: product.price,
+      image: product.image,
+      quantity: 1
+    });
 
   if (error) {
-    alert("Error adding to cart: " + error.message);
-    return;
+    alert("Failed to add to cart");
+  } else {
+    alert("Added to cart");
+    loadCart();
   }
-
-  alert("Added to cart!");
 }
 
+// Load Cart
+async function loadCart() {
+  const user = await getCurrentUser();
+  if (!user) return;
 
-async function getCart() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
-
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("cart")
-    .select("id, quantity, products (*)")
+    .select("*")
     .eq("user_id", user.id);
 
-  if (error) {
-    console.log(error);
-    return [];
-  }
+  if (error) return;
 
-  return data;
+  document.getElementById("cart-count").textContent = data.length;
 }
 
+// Remove from Cart
+async function removeCart(id) {
+  let { error } = await supabase.from("cart").delete().eq("id", id);
 
-
-async function removeFromCart(cartId) {
-  const { error } = await supabase
-    .from("cart")
-    .delete()
-    .eq("id", cartId);
-
-  if (error) {
-    alert("Error removing item.");
-  } else {
-    alert("Removed!");
+  if (!error) {
+    loadCart();
   }
 }
 
+// ======================================
+// 🔥 PAYPAL ORDER SAVE
+// ======================================
 
+async function saveOrder(cartItems, amount) {
+  const user = await getCurrentUser();
+  if (!user) return;
 
+  let { error } = await supabase.from("orders").insert({
+    user_id: user.id,
+    cart_items: cartItems,
+    amount: amount,
+  });
+
+  if (!error) {
+    supabase.from("cart").delete().eq("user_id", user.id);
+    loadCart();
+    alert("Order saved successfully!");
+  }
+}
+
+// ======================================
+// 🔥 LINK TO YOUR HTML BUTTONS
+// ======================================
+document.getElementById("add-to-cart").addEventListener("click", () => {
+  addToCart({
+    id: "001",
+    title: document.getElementById("product-title").textContent,
+    price: parseFloat(document.getElementById("product-price").textContent.replace("$", "")),
+    image: document.getElementById("product-image").src
+  });
+});
+
+// Buy Now Button
+document.getElementById("buy-now").addEventListener("click", () => {
+  alert("Proceeding to PayPal checkout...");
+});
+
+// Load cart automatically on page load
+loadCart();
+</script>
